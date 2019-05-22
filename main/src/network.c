@@ -12,6 +12,8 @@
 
 #include "network.h"
 
+QueueHandle_t xNetQueue;
+
 void init_ap() {
     tcpip_adapter_init();
 

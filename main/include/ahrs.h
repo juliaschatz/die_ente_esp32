@@ -22,7 +22,6 @@
 #pragma once
 
 #include "unified_i2c.h"
-#include "imumaths.h"
 
 /** BNO055 Address A **/
 #define BNO055_ADDRESS_A (0x28)
@@ -53,12 +52,7 @@ typedef struct {
   int16_t mag_radius; /**< magnetometer radius */
 } adafruit_bno055_offsets_t;
 
-/*!
- *  @brief  Class that stores state and functions for interacting with
- *          BNO055 Sensor
- */
-class Adafruit_BNO055 {
-public:
+
   /** BNO055 Registers **/
   typedef enum {
     /* Page id register definition */
@@ -276,42 +270,35 @@ public:
     VECTOR_GRAVITY = BNO055_GRAVITY_DATA_X_LSB_ADDR
   } adafruit_vector_type_t;
 
-  Adafruit_BNO055(i2c_port_t i2c_port, int32_t sensorID = -1, uint8_t address = BNO055_ADDRESS_A);
+  typedef struct {
+    i2c_port_t i2c_port;
+    uint8_t _address;
+    adafruit_bno055_opmode_t _mode;
+  } Adafruit_BNO055;
 
-  bool begin(adafruit_bno055_opmode_t mode = OPERATION_MODE_NDOF);
-  void setMode(adafruit_bno055_opmode_t mode);
-  void setAxisRemap(adafruit_bno055_axis_remap_config_t remapcode);
-  void setAxisSign(adafruit_bno055_axis_remap_sign_t remapsign);
-  void getRevInfo(adafruit_bno055_rev_info_t *);
-  void setExtCrystalUse(bool usextal);
-  void getSystemStatus(uint8_t *system_status, uint8_t *self_test_result,
+  Adafruit_BNO055* createBNO055(i2c_port_t i2c_port, uint8_t address);
+  int ahrsBegin(Adafruit_BNO055* imu, gpio_num_t sda_num, gpio_num_t scl_num, adafruit_bno055_opmode_t mode);
+  void setMode(Adafruit_BNO055* imu, adafruit_bno055_opmode_t mode);
+  void setAxisRemap(Adafruit_BNO055* imu, adafruit_bno055_axis_remap_config_t remapcode);
+  void setAxisSign(Adafruit_BNO055* imu, adafruit_bno055_axis_remap_sign_t remapsign);
+  void getRevInfo(Adafruit_BNO055* imu, adafruit_bno055_rev_info_t *);
+  void setExtCrystalUse(Adafruit_BNO055* imu, int usextal);
+  void getSystemStatus(Adafruit_BNO055* imu, uint8_t *system_status, uint8_t *self_test_result,
                        uint8_t *system_error);
-  void getCalibration(uint8_t *system, uint8_t *gyro, uint8_t *accel,
+  void getCalibration(Adafruit_BNO055* imu, uint8_t *system, uint8_t *gyro, uint8_t *accel,
                       uint8_t *mag);
 
-  imu::Vector<3> getVector(adafruit_vector_type_t vector_type);
-  imu::Quaternion getQuat();
-  int8_t getTemp();
+  void getVector(Adafruit_BNO055 * imu, adafruit_vector_type_t vector_type, double* _buffer);
+  void getQuat(Adafruit_BNO055 * imu, double* _buffer);
+  int8_t getTemp(Adafruit_BNO055* imu);
 
   /* Functions to deal with raw calibration data */
-  bool getSensorOffsets(uint8_t *calibData);
-  bool getSensorOffsets(adafruit_bno055_offsets_t &offsets_type);
-  void setSensorOffsets(const uint8_t *calibData);
-  void setSensorOffsets(const adafruit_bno055_offsets_t &offsets_type);
-  bool isFullyCalibrated();
+  int getSensorOffsets(Adafruit_BNO055* imu, uint8_t *calibData);
+  void setSensorOffsets(Adafruit_BNO055* imu, const uint8_t *calibData);
+  int isFullyCalibrated(Adafruit_BNO055* imu);
 
   /* Power managments functions */
-  void enterSuspendMode();
-  void enterNormalMode();
+  void enterSuspendMode(Adafruit_BNO055* imu);
+  void enterNormalMode(Adafruit_BNO055* imu);
+  
 
-private:
-  uint8_t read8(adafruit_bno055_reg_t);
-  bool readLen(adafruit_bno055_reg_t, uint8_t *buffer, uint8_t len);
-  bool write8(adafruit_bno055_reg_t, uint8_t value);
-
-  uint8_t _address;
-  i2c_port_t i2c_port;
-
-  int32_t _sensorID;
-  adafruit_bno055_opmode_t _mode;
-};

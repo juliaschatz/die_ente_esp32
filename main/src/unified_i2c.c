@@ -24,7 +24,7 @@ int i2c_read(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, int coun
     return ret;
 }
 
-int ahrs_write(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, int count, uint8_t buf[]) {
+int i2c_write(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, int count, uint8_t buf[]) {
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     // Begin write transaction
@@ -40,9 +40,9 @@ int ahrs_write(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, int co
 }
 
 int ahrs_write_reg(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, uint8_t value) {
-    return ahrs_write(port, device_addr, reg_address, 1, &value);
+    return i2c_write(port, device_addr, reg_address, 1, &value);
 }
 
-int ahrs_read_reg(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, uint8_t * value) {
-    return ahrs_read(port, device_addr, reg_address, 1, value);
+int i2c_read_reg(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, uint8_t * value) {
+    return i2c_read(port, device_addr, reg_address, 1, value);
 }

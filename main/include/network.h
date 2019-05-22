@@ -19,7 +19,7 @@ typedef struct {
     TickType_t timestamp;
 } Packet;
 
-QueueHandle_t xNetQueue;
+
 
 void init_ap();
 

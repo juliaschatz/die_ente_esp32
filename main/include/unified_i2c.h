@@ -8,7 +8,7 @@
 #define I2C_ACK_VAL 0x0
 #define I2C_NACK_VAL 0x1
 
-int i2c_read(i2c_port_t port, int8_t address, int count, uint8_t buf[]);
-int i2c_read_reg(i2c_port_t port, int8_t address, uint8_t * value);
-int i2c_write(i2c_port_t port, int8_t address, int count, uint8_t buf[]);
-int i2c_write_reg(i2c_port_t port, int8_t address, uint8_t value);
+int i2c_read(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, int count, uint8_t buf[]);
+int i2c_read_reg(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, uint8_t * value);
+int i2c_write(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, int count, uint8_t buf[]);
+int i2c_write_reg(i2c_port_t port, uint8_t device_addr, uint8_t reg_address, uint8_t value);

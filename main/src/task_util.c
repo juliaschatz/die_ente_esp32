@@ -1,6 +1,16 @@
 #include "task_util.h"
-#include "task.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+
+long ms_to_tick(int ms) {
+    return ms / portTICK_PERIOD_MS;
+}
 
 void delay(int ms) {
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(ms_to_tick(ms));
+}
+
+void delayUntil(TickType_t * prevTime, int ms) {
+    vTaskDelayUntil(prevTime, ms_to_tick(ms));
 }

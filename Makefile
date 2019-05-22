@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := diffyswerve
+PROJECT_NAME := die_ente
 
 include $(IDF_PATH)/make/project.mk
 
