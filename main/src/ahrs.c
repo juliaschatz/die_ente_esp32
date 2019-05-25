@@ -34,11 +34,7 @@
 
 #include "task_util.h"
 #include "ahrs.h"
-#include "unified_i2c.h"
-
-uint8_t read8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t);
-int readLen(Adafruit_BNO055 * imu, adafruit_bno055_reg_t, uint8_t *buffer, uint8_t len);
-int write8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t, uint8_t value);
+#include "driver/uart.h"
 
 /*!
  *  @brief  Instantiates a new Adafruit_BNO055 class
@@ -49,10 +45,9 @@ int write8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t, uint8_t value);
  *  @param  *theWire
  *          Wire object
  */
-Adafruit_BNO055* createBNO055(i2c_port_t i2c_port, uint8_t address) {
+Adafruit_BNO055* createBNO055(uart_port_t uart_port) {
   Adafruit_BNO055* imu = malloc(sizeof(Adafruit_BNO055));
-  imu->_address = address;
-  imu->i2c_port = i2c_port;
+  imu->uart_port = uart_port;
   imu->_mode = OPERATION_MODE_NDOF;
   return imu;
 }
@@ -76,28 +71,26 @@ Adafruit_BNO055* createBNO055(i2c_port_t i2c_port, uint8_t address) {
  *            OPERATION_MODE_NDOF]
  *  @return true if process is successful
  */
-int ahrsBegin(Adafruit_BNO055* imu, gpio_num_t sda_num, gpio_num_t scl_num, adafruit_bno055_opmode_t mode) {
-
-  int i2c_master_port = I2C_NUM_0;
-  i2c_config_t conf;
-  conf.mode = I2C_MODE_MASTER;
-  conf.sda_io_num = sda_num;
-  conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-  conf.scl_io_num = scl_num;
-  conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-  conf.master.clk_speed = 100000;
-  i2c_param_config(imu->i2c_port, &conf);
-  i2c_driver_install(imu->i2c_port, conf.mode, 0, 0, 0);
+int ahrsBegin(Adafruit_BNO055* imu, gpio_num_t tx_num, gpio_num_t rx_num, adafruit_bno055_opmode_t mode) {
+  uart_config_t uart_config = {
+      .baud_rate = 115200,
+      .data_bits = UART_DATA_8_BITS,
+      .parity = UART_PARITY_DISABLE,
+      .stop_bits = UART_STOP_BITS_1,
+      .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+      .rx_flow_ctrl_thresh = 122,
+  };
+  ESP_ERROR_CHECK(uart_param_config(imu->uart_port, &uart_config));
+  ESP_ERROR_CHECK(uart_set_pin(imu->uart_port, tx_num, rx_num, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+  // Setup UART buffered IO with event queue
+  const int uart_buffer_size = (1024 * 2);
+  // Install UART driver using an event queue here
+  ESP_ERROR_CHECK(uart_driver_install(imu->uart_port, uart_buffer_size, \
+                                          uart_buffer_size, 10, &imu->uart_queue, 0));
 
   /* Make sure we have the right device */
   uint8_t id = read8(imu, BNO055_CHIP_ID_ADDR);
-  if (id != BNO055_ID) {
-    delay(1000); // hold on for boot
-    id = read8(imu, BNO055_CHIP_ID_ADDR);
-    if (id != BNO055_ID) {
-      return 0; // still not? ok bail
-    }
-  }
+  printf("Read AHRS id %d\n", id);
 
   /* Switch to config mode (just in case since this is the default) */
   setMode(imu, OPERATION_MODE_CONFIG);
@@ -598,7 +591,16 @@ void enterNormalMode(Adafruit_BNO055 * imu) {
  *  @brief  Writes an 8 bit value over I2C
  */
 int write8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t reg, uint8_t value) {
-  i2c_write_reg(imu->i2c_port, imu->_address, reg, value);
+  uint8_t packet[] = {0xAA, 0x00, reg, 1, value};
+  uart_flush(imu->uart_port);
+  uart_write_bytes(imu->uart_port, (const char*)packet, 5);
+  uint8_t buf[130];
+  int avail = uart_read_bytes(imu->uart_port, buf, 2, 100);
+  if (avail > 0) {
+    if (buf[0] == 0xEE) {
+      // Do something with response status buf[1]
+    }
+  }
 
   /* ToDo: Check for error! */
   return 1;
@@ -609,8 +611,7 @@ int write8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t reg, uint8_t value) {
  */
 uint8_t read8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t reg) {
   uint8_t value = 0;
-  i2c_read_reg(imu->i2c_port, imu->_address, reg, &value);
-
+  readLen(imu, reg, &value, 1);
   return value;
 }
 
@@ -619,8 +620,26 @@ uint8_t read8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t reg) {
  */
 int readLen(Adafruit_BNO055 * imu, adafruit_bno055_reg_t reg, uint8_t *buffer,
                               uint8_t len) {
-  i2c_read(imu->i2c_port, imu->_address, reg, len, buffer);
+  uint8_t packet[] = {0xAA, 0x01, reg, len};
+  uart_flush(imu->uart_port);
+  uart_write_bytes(imu->uart_port, (const char*)packet, 4);
+  uint8_t available = 0;
+  do {
+    uart_get_buffered_data_len(imu->uart_port, &available);
+    delay(1);
+  } while (!available);
+  uint8_t buf[130];
+  int avail = uart_read_bytes(imu->uart_port, buf, available, 100);
+  if (avail > 0) {
+    if (buf[0] == 0xBB) {
+      uint8_t recvd = buf[1];
+      memcpy(buffer, buf+2, len);
+      return 1;
+    }
+    else if (buf[0] == 0xEE) {
+      // Do something
+    }
+  }
 
-  /* ToDo: Check for errors! */
-  return 1;
+  return 0;
 }

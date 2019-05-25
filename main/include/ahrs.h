@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "unified_i2c.h"
+#include "driver/uart.h"
 
 /** BNO055 Address A **/
 #define BNO055_ADDRESS_A (0x28)
@@ -271,13 +271,13 @@ typedef struct {
   } adafruit_vector_type_t;
 
   typedef struct {
-    i2c_port_t i2c_port;
-    uint8_t _address;
+    uart_port_t uart_port;
     adafruit_bno055_opmode_t _mode;
+    QueueHandle_t uart_queue;
   } Adafruit_BNO055;
 
-  Adafruit_BNO055* createBNO055(i2c_port_t i2c_port, uint8_t address);
-  int ahrsBegin(Adafruit_BNO055* imu, gpio_num_t sda_num, gpio_num_t scl_num, adafruit_bno055_opmode_t mode);
+  Adafruit_BNO055* createBNO055(uart_port_t uart_port);
+  int ahrsBegin(Adafruit_BNO055* imu, gpio_num_t tx_num, gpio_num_t rx_num, adafruit_bno055_opmode_t mode);
   void setMode(Adafruit_BNO055* imu, adafruit_bno055_opmode_t mode);
   void setAxisRemap(Adafruit_BNO055* imu, adafruit_bno055_axis_remap_config_t remapcode);
   void setAxisSign(Adafruit_BNO055* imu, adafruit_bno055_axis_remap_sign_t remapsign);
@@ -302,3 +302,6 @@ typedef struct {
   void enterNormalMode(Adafruit_BNO055* imu);
   
 
+uint8_t read8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t);
+int readLen(Adafruit_BNO055 * imu, adafruit_bno055_reg_t, uint8_t *buffer, uint8_t len);
+int write8(Adafruit_BNO055 * imu, adafruit_bno055_reg_t, uint8_t value);
