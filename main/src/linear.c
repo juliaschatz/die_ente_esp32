@@ -1,4 +1,6 @@
 #include "linear.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 Vector matVecMul(Matrix A, Vector x) {
     if (A.cols != x.length) {
@@ -23,8 +25,28 @@ Vector vectorSub(Vector a, Vector b) {
     for (int i = 0; i < a.length; i++) {
         v.data[i] = a.data[i] - b.data[i];
     }
+    return v;
 }
 
 float matAt(Matrix A, int row, int col) {
     return A.data[row * A.cols + col];
+}
+
+void vectorScale(Vector * a, float scale) {
+    for (int i = 0; i < a->length; i++) {
+        a->data[i] *= scale;
+    }
+}
+
+void vectorAddScalar(Vector * a, float b) {
+    for (int i = 0; i < a->length; i++) {
+        a->data[i] += b;
+    }
+}
+
+void printVec(Vector * a) {
+    for (int i = 0; i < a->length; i++) {
+        printf("%f\t", a->data[i]);
+    }
+    printf("\n");
 }

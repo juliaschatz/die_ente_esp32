@@ -3,7 +3,10 @@ set(COMPONENT_SRCS "src/die_ente_main.c"
                    "src/unified_i2c.c"
                    "src/ahrs.c"
                    "src/task_util.c"
-                   "src/flight_controller.c")
+                   "src/flight_controller.c"
+                   "src/linear.c"
+                   "src/network.c"
+                   "src/battery.c")
 set(COMPONENT_ADD_INCLUDEDIRS "include")
 
 register_component()

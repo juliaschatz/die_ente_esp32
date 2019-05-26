@@ -55,12 +55,17 @@ Motor* createMotor(int gpio_pwm) {
  */
 void setMotorSpeed(Motor* motor, float speed) {
     // Clamp magnitude
-    speed = speed > 1.0 ? 1.0 : speed;
-    speed = speed < 0.0 ? 0.0 : speed;
+    speed = speed > MAX_POWER ? MAX_POWER : speed;
+    speed = speed < 0.01 ? 0.0 : speed;
     // Interpolate magnitude to us
-    int range = MAX_PULSE_US - MIN_PULSE_US;
+    int micros;
+    if (speed > 0.0) {
+        int range = MAX_PULSE_US - MIN_PULSE_US;
 
-    int micros = MIN_PULSE_US + speed * range;
-    printf("%d\n", micros);
+        micros = MIN_PULSE_US + speed * range;
+    }
+    else {
+        micros = OFF_PULSE_US;
+    }
     mcpwm_set_duty_in_us(motor->unit, motor->timer, motor->op, micros);
 }

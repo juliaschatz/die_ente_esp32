@@ -288,8 +288,8 @@ typedef struct {
   void getCalibration(Adafruit_BNO055* imu, uint8_t *system, uint8_t *gyro, uint8_t *accel,
                       uint8_t *mag);
 
-  void getVector(Adafruit_BNO055 * imu, adafruit_vector_type_t vector_type, double* _buffer);
-  void getQuat(Adafruit_BNO055 * imu, double* _buffer);
+  void getVector(Adafruit_BNO055 * imu, adafruit_vector_type_t vector_type, float* _buffer);
+  void getQuat(Adafruit_BNO055 * imu, float* _buffer);
   int8_t getTemp(Adafruit_BNO055* imu);
 
   /* Functions to deal with raw calibration data */

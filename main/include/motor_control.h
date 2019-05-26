@@ -1,7 +1,9 @@
 #pragma once
 
-#define MIN_PULSE_US 1000
+#define OFF_PULSE_US 1000
+#define MIN_PULSE_US 1080
 #define MAX_PULSE_US 2000
+#define MAX_POWER 0.51 // Safe limit
 
 typedef struct {
     int unit;

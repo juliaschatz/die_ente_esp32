@@ -8,25 +8,13 @@
 
 #include "motor_control.h"
 #include "flight_controller.h"
+#include "battery.h"
 
-void test_motor(void *arg) {
-    adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten(ADC1_CHANNEL_0,ADC_ATTEN_DB_11);
-    Motor* motor = createMotor(23);
-    printf("Setting neutral\n");
-    setMotorSpeed(motor, 0);
-    vTaskDelay(1000);
-    while (1) {
-        int reading = adc1_get_raw(ADC1_CHANNEL_0);
-        printf("%d\n",reading);
-        setMotorSpeed(motor, 2 * reading / 4095.0 - 1);
-        vTaskDelay(10);
-    }
-}
 
 void app_main()
 {
-    //xTaskCreate(vTaskServer, "server", 4096, NULL, 5, NULL);
-    //xTaskCreate(test_motor, "test_motor", 4096, NULL, 5, NULL);
+    init_ap();
     xTaskCreate(flightControllerTask, "flight_controller", 4096, NULL, 5, NULL);
+    xTaskCreate(vServerTask, "server", 4096, NULL, 5, NULL);
+    xTaskCreate(vBatteryTask, "battery_watch", 4096, NULL, 5, NULL);
 }

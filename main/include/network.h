@@ -5,22 +5,22 @@
 #include "freertos/task.h"
 #include <stdlib.h>
 
-#define AP_SSID "GopherSwerve"
-#define AP_PASS "12345"
-#define PORT_NUMBER 4357
+#define AP_SSID "ente"
+#define AP_PASS "entemeansduck"
+#define PORT 4357
 #define NET_TAG "NETWORK"
 
-#define PACKET_LEN 4
+#define PACKET_LEN 5
 typedef struct {
-    int8_t commandx;
-    int8_t commandy;
-    int8_t commandrot;
+    int8_t commandYaw;
+    int8_t commandPitch;
+    int8_t commandRoll;
+    int8_t commandThrottle;
     int8_t commandother;
     TickType_t timestamp;
 } Packet;
 
 
-
 void init_ap();
 
-void vTaskServer(void * params);
+void vServerTask(void * params);

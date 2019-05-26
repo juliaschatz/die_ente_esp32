@@ -374,8 +374,8 @@ int8_t getTemp(Adafruit_BNO055 * imu) {
  *            VECTOR_GRAVITY]
  *  @return  vector from specified source
  */
-void getVector(Adafruit_BNO055 * imu, adafruit_vector_type_t vector_type, double* _buffer) {
-  double* xyz = _buffer;
+void getVector(Adafruit_BNO055 * imu, adafruit_vector_type_t vector_type, float* _buffer) {
+  float* xyz = _buffer;
   uint8_t buffer[6];
   memset(buffer, 0, 6);
 
@@ -396,39 +396,39 @@ void getVector(Adafruit_BNO055 * imu, adafruit_vector_type_t vector_type, double
   switch (vector_type) {
   case VECTOR_MAGNETOMETER:
     /* 1uT = 16 LSB */
-    xyz[0] = ((double)x) / 16.0;
-    xyz[1] = ((double)y) / 16.0;
-    xyz[2] = ((double)z) / 16.0;
+    xyz[0] = ((float)x) / 16.0;
+    xyz[1] = ((float)y) / 16.0;
+    xyz[2] = ((float)z) / 16.0;
     break;
   case VECTOR_GYROSCOPE:
     /* 1dps = 16 LSB */
-    xyz[0] = ((double)x) / 16.0;
-    xyz[1] = ((double)y) / 16.0;
-    xyz[2] = ((double)z) / 16.0;
+    xyz[0] = ((float)x) / 16.0;
+    xyz[1] = ((float)y) / 16.0;
+    xyz[2] = ((float)z) / 16.0;
     break;
   case VECTOR_EULER:
     /* 1 degree = 16 LSB */
-    xyz[0] = ((double)x) / 16.0;
-    xyz[1] = ((double)y) / 16.0;
-    xyz[2] = ((double)z) / 16.0;
+    xyz[0] = ((float)x) / 16.0;
+    xyz[1] = ((float)y) / 16.0;
+    xyz[2] = ((float)z) / 16.0;
     break;
   case VECTOR_ACCELEROMETER:
     /* 1m/s^2 = 100 LSB */
-    xyz[0] = ((double)x) / 100.0;
-    xyz[1] = ((double)y) / 100.0;
-    xyz[2] = ((double)z) / 100.0;
+    xyz[0] = ((float)x) / 100.0;
+    xyz[1] = ((float)y) / 100.0;
+    xyz[2] = ((float)z) / 100.0;
     break;
   case VECTOR_LINEARACCEL:
     /* 1m/s^2 = 100 LSB */
-    xyz[0] = ((double)x) / 100.0;
-    xyz[1] = ((double)y) / 100.0;
-    xyz[2] = ((double)z) / 100.0;
+    xyz[0] = ((float)x) / 100.0;
+    xyz[1] = ((float)y) / 100.0;
+    xyz[2] = ((float)z) / 100.0;
     break;
   case VECTOR_GRAVITY:
     /* 1m/s^2 = 100 LSB */
-    xyz[0] = ((double)x) / 100.0;
-    xyz[1] = ((double)y) / 100.0;
-    xyz[2] = ((double)z) / 100.0;
+    xyz[0] = ((float)x) / 100.0;
+    xyz[1] = ((float)y) / 100.0;
+    xyz[2] = ((float)z) / 100.0;
     break;
   }
 }
@@ -437,7 +437,7 @@ void getVector(Adafruit_BNO055 * imu, adafruit_vector_type_t vector_type, double
  *  @brief  Gets a quaternion reading from the specified source
  *  @return quaternion reading
  */
-void getQuat(Adafruit_BNO055 * imu, double* _buffer) {
+void getQuat(Adafruit_BNO055 * imu, float* _buffer) {
   uint8_t buffer[8];
   memset(buffer, 0, 8);
 
@@ -457,7 +457,7 @@ void getQuat(Adafruit_BNO055 * imu, double* _buffer) {
    * http://ae-bst.resource.bosch.com/media/products/dokumente/bno055/BST_BNO055_DS000_12~1.pdf
    * 3.6.5.5 Orientation (Quaternion)
    */
-  const double scale = (1.0 / (1 << 14));
+  const float scale = (1.0 / (1 << 14));
   _buffer[0] = scale * w;
   _buffer[1] = scale * x;
   _buffer[2] = scale * y;
@@ -637,7 +637,6 @@ int readLen(Adafruit_BNO055 * imu, adafruit_bno055_reg_t reg, uint8_t *buffer,
       return 1;
     }
     else if (buf[0] == 0xEE) {
-      // Do something
     }
   }
 
