@@ -1,12 +1,6 @@
-set(COMPONENT_SRCS "src/die_ente_main.c" 
-                   "src/motor_control.c"
-                   "src/unified_i2c.c"
-                   "src/ahrs.c"
-                   "src/task_util.c"
-                   "src/flight_controller.c"
-                   "src/linear.c"
-                   "src/network.c"
-                   "src/battery.c")
-set(COMPONENT_ADD_INCLUDEDIRS "include")
+file(GLOB SOURCES src/*.cpp)
+set(COMPONENT_SRCS ${SOURCES})
+set(COMPONENT_ADD_INCLUDEDIRS "src")
+set(COMPONENT_ADD_INCLUDEDIRS "Eigen")
 
 register_component()

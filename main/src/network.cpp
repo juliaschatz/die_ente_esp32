@@ -9,7 +9,7 @@
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
 #include <lwip/sockets.h>
-#include "esp_event_loop.h"
+#include "esp_event.h"
 #include "esp_log.h"
 
 #include "network.h"
@@ -21,12 +21,12 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     switch(event->event_id) {
     case SYSTEM_EVENT_AP_STACONNECTED:
-        ESP_LOGI(NET_TAG, "station:"MACSTR" join, AID=%d",
+        ESP_LOGI(NET_TAG, "station:" MACSTR " join, AID=%d",
                  MAC2STR(event->event_info.sta_connected.mac),
                  event->event_info.sta_connected.aid);
         break;
     case SYSTEM_EVENT_AP_STADISCONNECTED:
-        ESP_LOGI(NET_TAG, "station:"MACSTR"leave, AID=%d",
+        ESP_LOGI(NET_TAG, "station:" MACSTR "leave, AID=%d",
                  MAC2STR(event->event_info.sta_disconnected.mac),
                  event->event_info.sta_disconnected.aid);
         break;
@@ -54,11 +54,16 @@ void init_ap() {
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     wifi_config_t wifi_config = {
         .ap = {
-            .ssid = AP_SSID,
-            .ssid_len = strlen(AP_SSID),
-            .password = AP_PASS,
-            .max_connection = 2,
-            .authmode = WIFI_AUTH_WPA_WPA2_PSK
+            AP_SSID,
+            AP_PASS,
+            strlen(AP_SSID), // ssid len
+            0, // channel
+            WIFI_AUTH_WPA_WPA2_PSK, // authmode
+            0, // ssid hidden
+            2, // max connections
+            100, // beacon interval
+            WIFI_CIPHER_TYPE_NONE, // pairwise cipher
+            false // ftm responder
         },
     };
     if (strlen(AP_PASS) == 0) {
@@ -66,7 +71,7 @@ void init_ap() {
     }
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-    ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
     ESP_LOGI(NET_TAG, "wifi_init_softap finished.SSID:%s password:%s",
