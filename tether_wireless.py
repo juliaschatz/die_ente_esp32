@@ -3,15 +3,17 @@
 import pygame, socket, os, time, select
 
 # set SDL to use the dummy NULL video driver, so it doesn't need a windowing system.
-os.environ["SDL_VIDEODRIVER"] = "dummy"
+#os.environ["SDL_VIDEODRIVER"] = "dummy"
 # init pygame
 pygame.init()
 # create a 1x1 pixel screen, its not used so it doesnt matter
-screen = pygame.display.set_mode((1, 1))
+screen = pygame.display.set_mode((200, 200))
+pygame.display.set_caption("My Game")
 # init the joystick control
 
 pygame.joystick.init()
 _joystick = pygame.joystick.Joystick(0)
+print(pygame.joystick.get_count())
 _joystick.init()
 
 wport = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -19,8 +21,11 @@ wport.connect(("192.168.4.1", 4357))
 #wport.open()
 # Main event loop
 ready = False
-while True:
-    pygame.event.get()
+done = False
+while not done:
+    for event in pygame.event.get(): # User did something.
+        if event.type == pygame.QUIT: # If user clicked close.
+            done = True # Flag that we are done so we exit this loop.
     lx = _joystick.get_axis(0)
     ly = _joystick.get_axis(1)
     rtrigger = _joystick.get_axis(4)
@@ -52,4 +57,7 @@ while True:
         resp = wport.recv(64).decode("U8", errors="ignore")
         print(resp, end="")
 
+    pygame.display.flip()
     time.sleep(20 / 1000)  # Sleep 20 ms to let esp32 catch up
+
+pygame.quit()
