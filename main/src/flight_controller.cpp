@@ -126,6 +126,7 @@ void flightControllerTask(void* arg) {
   nvs_close(my_handle);
   delay(1000); // Wait for calibration to take effect and AHRS to setup
 
+  lastTime = xTaskGetTickCount();
   Packet lastControlState = {.timestamp = lastTime};
   Quaterniond attitude;
   Quaterniond desiredAttitude(0.0,0.0,0.0,0.0);
@@ -155,12 +156,8 @@ void flightControllerTask(void* arg) {
     //modifyThrottle(u, throttle);
     
     u += Vector4d(1.0, 1.0, 1.0, 1.0) * throttle;
-    uint8_t sysCal;
-    uint8_t gyroCal;
-    uint8_t accelCal;
-    uint8_t magCal;
-    ahrs.getCalibration(&sysCal, &gyroCal, &accelCal, &magCal);
-    printf("%d %d %d %d : %f %f %f %f : %f %f %f %f : %f %f %f %f : %f %f %f\n", sysCal, gyroCal, accelCal, magCal, u(0), u(1), u(2), u(3), desiredAttitude.w(), desiredAttitude.x(), desiredAttitude.y(), desiredAttitude.z(), attitude.w(), attitude.x(), attitude.y(), attitude.z(), rates(0), rates(1), rates(2));
+    //ahrs.getCalibration(&sysCal, &gyroCal, &accelCal, &magCal);
+    //printf("%f %f %f %f : %f %f %f %f : %f %f %f %f : %f %f %f\n", u(0), u(1), u(2), u(3), desiredAttitude.w(), desiredAttitude.x(), desiredAttitude.y(), desiredAttitude.z(), attitude.w(), attitude.x(), attitude.y(), attitude.z(), rates(0), rates(1), rates(2));
     if (lastTime - lastControlState.timestamp > CONTROL_TIMEOUT || lastControlState.commandThrottle < 0.1) {
         u *= 0.0;
     }

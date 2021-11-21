@@ -12,8 +12,8 @@ void setupController() {
   steeringMatrix <<
     -1, -1, -1,
      1, -1,  1,
-    -1,  1,  1,
-     1,  1, -1;
+     1,  1, -1,
+    -1,  1,  1;
   angvelGainMat = (Vector3d() << yaw_angvel_kp, pitch_angvel_kp, roll_angvel_kp).finished().asDiagonal();
 }
 
