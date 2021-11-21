@@ -5,15 +5,15 @@ Matrix<double, 4, 3> steeringMatrix;
 
 const double yaw_angvel_kp = 0.0001856;
 const double pitch_angvel_kp = 0.0001287;
-const double roll_angvel_kp = 0.0001287;
-const double time_constant = 0.01;
+const double roll_angvel_kp = 0.0002587;
+const double time_constant = 0.001;
 
 void setupController() {
   steeringMatrix <<
-     1,  1,  1,
-    -1,  1, -1,
-     1, -1, -1,
-    -1, -1,  1;
+    -1, -1, -1,
+     1, -1,  1,
+    -1,  1,  1,
+     1,  1, -1;
   angvelGainMat = (Vector3d() << yaw_angvel_kp, pitch_angvel_kp, roll_angvel_kp).finished().asDiagonal();
 }
 

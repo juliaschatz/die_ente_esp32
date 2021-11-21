@@ -8,6 +8,8 @@
 #include "network.h"
 #include "math.h"
 #include "gnc.h"
+#include "nvs.h"
+#include "nvs_flash.h"
 #include <string.h>
 
 using namespace Eigen;
@@ -20,6 +22,7 @@ Adafruit_BNO055 ahrs(UART_NUM_2);
 extern QueueHandle_t xNetQueue;
 
 const double Kl = 0.9968/4; // Throttle lift constant. Per motor required to maintain altitude
+adafruit_bno055_offsets_t ahrs_cal;
 
 void setupMotors() {
   fr.begin();
@@ -80,11 +83,58 @@ void flightControllerTask(void* arg) {
     return;
   }
   TickType_t lastTime = xTaskGetTickCount();
+
+  // AHRS calibration
+  // Check if calibration stored in nvs
+  nvs_handle_t my_handle;
+  esp_err_t nvs_err;
+
+  // Open
+  nvs_err = nvs_open(NVS_AHRS_NS, NVS_READWRITE, &my_handle);
+  if (nvs_err != ESP_OK) return;
+  size_t read_size = 0;  // value will default to 0, if not set yet in NVS
+  nvs_err = nvs_get_blob(my_handle, NVS_AHRS_KEY_CAL, NULL, &read_size);
+  if (nvs_err != ESP_OK && nvs_err != ESP_ERR_NVS_NOT_FOUND) return;
+
+  // Read previously saved blob if available
+  if (read_size > 0) {
+    if (read_size != sizeof(adafruit_bno055_offsets_t)) {
+      printf("Wrong size calibration\n");
+      return;
+    }
+    nvs_get_blob(my_handle, NVS_AHRS_KEY_CAL, &ahrs_cal, &read_size);
+    ahrs.setSensorOffsets(ahrs_cal);
+    printf("Loaded calibration\n");
+  }
+  else {
+    uint8_t sysCal;
+    uint8_t gyroCal;
+    uint8_t accelCal;
+    uint8_t magCal;
+    while (!ahrs.getSensorOffsets(ahrs_cal)) {
+      
+      ahrs.getCalibration(&sysCal, &gyroCal, &accelCal, &magCal);
+
+      printf("Sys: %d Gyro: %d Accel: %d Mag: %d\n", sysCal, gyroCal, accelCal, magCal);
+      delayUntil(&lastTime, 10);
+    }
+    // Save to NVS
+    nvs_set_blob(my_handle, NVS_AHRS_KEY_CAL, &ahrs_cal, sizeof(adafruit_bno055_offsets_t));
+    nvs_commit(my_handle);
+    printf("Saved calibration\n");
+  }
+  nvs_close(my_handle);
+  delay(1000); // Wait for calibration to take effect and AHRS to setup
+
   Packet lastControlState = {.timestamp = lastTime};
   Quaterniond attitude;
-  Quaterniond desired_attitude(1.0,0.0,0.0,0.0);
+  Quaterniond desiredAttitude(0.0,0.0,0.0,0.0);
   Vector3d rates;
-  double desired_yaw = 0.0;
+  // Init desired attitude to match yaw of current attitude
+  updateState(rates, attitude); 
+  double yaw = atan2f(attitude.z(), attitude.w());
+  desiredAttitude.w() = cosf(yaw);
+  desiredAttitude.z() = sinf(yaw);
   while (1) {
     updateState(rates, attitude);
 
@@ -97,14 +147,20 @@ void flightControllerTask(void* arg) {
                       0.,0.,0.;*/
 
     // Calculate control effort
-    Vector3d desired_angvel = attitude_controller(attitude, desired_attitude);
+    Vector3d desired_angvel = attitude_controller(attitude, desiredAttitude);
     Vector4d u = angvel_controller(rates, desired_angvel);
 
     // Apply throttle
     double throttle = Kl + lastControlState.commandThrottle * 0.25 / 127.0;
     //modifyThrottle(u, throttle);
+    
     u += Vector4d(1.0, 1.0, 1.0, 1.0) * throttle;
-    printf("%f %f %f %f : %f %f %f %f : %f %f %f\n", u(0), u(1), u(2), u(3), attitude.w(), attitude.x(), attitude.y(), attitude.z(), rates(0), rates(1), rates(2));
+    uint8_t sysCal;
+    uint8_t gyroCal;
+    uint8_t accelCal;
+    uint8_t magCal;
+    ahrs.getCalibration(&sysCal, &gyroCal, &accelCal, &magCal);
+    printf("%d %d %d %d : %f %f %f %f : %f %f %f %f : %f %f %f %f : %f %f %f\n", sysCal, gyroCal, accelCal, magCal, u(0), u(1), u(2), u(3), desiredAttitude.w(), desiredAttitude.x(), desiredAttitude.y(), desiredAttitude.z(), attitude.w(), attitude.x(), attitude.y(), attitude.z(), rates(0), rates(1), rates(2));
     if (lastTime - lastControlState.timestamp > CONTROL_TIMEOUT || lastControlState.commandThrottle < 0.1) {
         u *= 0.0;
     }

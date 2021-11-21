@@ -9,13 +9,15 @@
 #include "motor_control.h"
 #include "flight_controller.h"
 #include "battery.h"
+#include "nvs.h"
 
 
 extern "C" void app_main()
 {
-    init_station();
-    //init_ap();
-    xTaskCreate(flightControllerTask, "flight_controller", 4096, NULL, 5, NULL);
-    xTaskCreate(vServerTask, "server", 4096, NULL, 5, NULL);
-    xTaskCreate(vBatteryTask, "battery_watch", 4096, NULL, 5, NULL);
+  init_nvs();
+  init_station();
+  //init_ap();
+  xTaskCreate(flightControllerTask, "flight_controller", 4096, NULL, 5, NULL);
+  xTaskCreate(vServerTask, "server", 4096, NULL, 5, NULL);
+  xTaskCreate(vBatteryTask, "battery_watch", 4096, NULL, 5, NULL);
 }

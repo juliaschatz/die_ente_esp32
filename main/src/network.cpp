@@ -61,13 +61,7 @@ static void sta_event_handler(void* arg, esp_event_base_t event_base,
 
 void init_station(void)
 {
-  //Initialize NVS
-  esp_err_t ret = nvs_flash_init();
-  if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    ESP_ERROR_CHECK(nvs_flash_erase());
-    ret = nvs_flash_init();
-  }
-  ESP_ERROR_CHECK(ret);
+  
     wifi_event_group = xEventGroupCreate();
 
     ESP_ERROR_CHECK(esp_netif_init());
@@ -132,15 +126,7 @@ void init_station(void)
     xNetQueue = xQueueCreate(3, sizeof(Packet));
 }
 
-void init_ap() {
-    //Initialize NVS
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-    
+void init_ap() {    
     wifi_event_group = xEventGroupCreate();
 
     tcpip_adapter_init();
