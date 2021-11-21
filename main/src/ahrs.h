@@ -23,7 +23,7 @@
 
 #include <Eigen>
 
-typedef Eigen::Vector4d Quaternion;
+#include "gnc.h"
 
 #include "driver/uart.h"
 #include "driver/gpio.h"
@@ -293,7 +293,7 @@ public:
                       uint8_t *mag);
 
   Eigen::Vector3d getVector(adafruit_vector_type_t vector_type);
-  Quaternion getQuat();
+  Quaterniond getQuat();
   int8_t getTemp();
 
   /* Functions to deal with raw calibration data */

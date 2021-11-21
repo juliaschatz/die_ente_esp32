@@ -435,7 +435,7 @@ Eigen::Vector3d Adafruit_BNO055::getVector(adafruit_vector_type_t vector_type) {
  *  @brief  Gets a quaternion reading from the specified source
  *  @return quaternion reading
  */
-Quaternion Adafruit_BNO055::getQuat() {
+Quaterniond Adafruit_BNO055::getQuat() {
   uint8_t buffer[8];
   memset(buffer, 0, 8);
 
@@ -456,7 +456,7 @@ Quaternion Adafruit_BNO055::getQuat() {
    * 3.6.5.5 Orientation (Quaternion)
    */
   const double scale = (1.0 / (1 << 14));
-  Quaternion quat(scale * w, scale * x, scale * y, scale * z);
+  Quaterniond quat(scale * w, scale * x, scale * y, scale * z);
   return quat;
 }
 
