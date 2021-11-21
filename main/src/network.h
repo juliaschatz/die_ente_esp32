@@ -7,8 +7,14 @@
 
 #define AP_SSID "ente"
 #define AP_PASS "entemeansduck"
+#define STA_SSID "Unit2"
+#define STA_PASS "spock987"
+#define STA_MAX_RETRY 5
 #define PORT 4357
 #define NET_TAG "NETWORK"
+
+#define WIFI_CONNECTED_BIT BIT0
+#define WIFI_FAIL_BIT      BIT1
 
 #define PACKET_LEN 5
 typedef struct {
@@ -22,5 +28,6 @@ typedef struct {
 
 
 void init_ap();
+void init_station();
 
 void vServerTask(void * params);

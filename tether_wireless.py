@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import pygame, socket, os, time, select
 
@@ -17,7 +17,7 @@ print(pygame.joystick.get_count())
 _joystick.init()
 
 wport = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-wport.connect(("192.168.4.1", 4357))
+wport.connect(("192.168.0.166", 4357))
 #wport.open()
 # Main event loop
 ready = False
@@ -28,8 +28,8 @@ while not done:
             done = True # Flag that we are done so we exit this loop.
     lx = _joystick.get_axis(0)
     ly = _joystick.get_axis(1)
-    rtrigger = _joystick.get_axis(4)
-    rx = _joystick.get_axis(2)
+    rtrigger = _joystick.get_axis(5)
+    rx = _joystick.get_axis(3)
     reset = 1 if _joystick.get_button(7) else 0
 
     yaw = int(127 * lx)

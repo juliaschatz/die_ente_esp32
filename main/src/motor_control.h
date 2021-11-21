@@ -8,7 +8,7 @@
 #define OFF_PULSE_US 1000
 #define MIN_PULSE_US 1080
 #define MAX_PULSE_US 2000
-#define MAX_POWER 0.51 // Safe limit
+#define MAX_POWER 1.0
 
 class Motor {
   public:
